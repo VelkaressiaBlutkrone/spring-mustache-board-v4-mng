@@ -1,0 +1,29 @@
+{{> header}}
+
+<div class="container p-5">
+
+    <div class="card">
+        <div class="card-header"><b>게시글 수정</b></div>
+        <div class="card-body">
+            {{#fieldErrors}}
+            <div class="alert alert-danger py-2" role="alert">{{message}}</div>
+            {{/fieldErrors}}
+            <form action="/board/{{model.id}}/update" method="post" enctype="application/x-www-form-urlencoded">
+                <div class="mb-3">
+                    <input type="text" class="form-control" placeholder="Enter title" name="title" value="{{model.title}}">
+                </div>
+                <div class="mb-3">
+                    <div id="boardContentInitial" style="display:none">{{& model.content}}</div>
+                    <textarea name="content" id="boardContent"></textarea>
+                </div>
+                <button class="btn btn-secondary form-control">수정하기</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+<script src="/js/summernote-init.js"></script>
+{{> bottom}}

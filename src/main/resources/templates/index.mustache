@@ -1,0 +1,25 @@
+{{> header}}
+
+<div class="container mt-3">
+
+  <table class="table table-hover" style="table-layout: fixed">
+    <thead>
+      <tr>
+        <th class="text-center" style="width: 20%">번호</th>
+        <th class="text-center" style="width: 40%">제목</th>
+        <th class="text-center">작성자</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#models}}
+      <tr onclick="location.href='/board/detail/{{id}}'" style="cursor:pointer">
+        <td class="text-center">{{id}}</td>
+        <td class="text-start" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{title}}</td>
+        <td class="text-center" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{writeName}}</td>
+      </tr>
+      {{/models}}
+    </tbody>
+  </table>
+</div>
+
+{{> bottom}}

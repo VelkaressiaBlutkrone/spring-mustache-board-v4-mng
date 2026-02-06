@@ -1,0 +1,64 @@
+{{> header}}
+
+<div class="container p-5">
+
+    <!-- 수정삭제버튼 -->
+    <div class="d-flex justify-content-end">
+        <a class="btn btn-info me-1" href="/">목록</a>
+        {{#isModify}}
+          <a class="btn btn-secondary me-1" href="/board/update-form/{{model.id}}">수정</a>
+          <form action="/board/{{model.id}}/delete" method="post">
+            <button class="btn btn-outline-secondary" onclick="return confirm('정말 삭제하시겠습니까?');">삭제</button>
+          </form>
+        {{/isModify}}
+
+    </div>
+
+    <!-- 게시글내용 -->
+    <div>
+        <h2><b>{{model.title}}</b></h2>
+        <hr />
+        <div class="d-flex justify-content-end">
+            작성자 : {{model.writeName}}
+        </div>
+        <div class="m-4 p-2 board-content">
+            {{& model.content}}
+        </div>
+    </div>
+
+    <!-- 댓글 -->
+    <div class="card mt-3">
+        <!-- 댓글등록 -->
+        <div class="card-body">
+            <form action="/reply/save" method="post" id="replyForm" data-is-login="{{#isLogin}}true{{/isLogin}}{{^isLogin}}false{{/isLogin}}">
+                <input type="hidden" name="boardId" value="{{model.id}}">
+                <textarea class="form-control" rows="2" name="comment" required placeholder="댓글을 입력하세요" id="commentTextarea" {{^isLogin}}readonly{{/isLogin}}></textarea>
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-secondary mt-1">댓글등록</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 댓글목록 -->
+        <div class="card-footer">
+            <b>댓글리스트</b>
+        </div>
+        <div class="list-group">
+            {{#model.replies}}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="d-flex">
+                    <div class="px-1 me-1 bg-secondary text-white rounded">{{replyWriterNm}}</div>
+                    <div>{{comment}}</div>
+                </div>
+                {{#isReplyWriter}}
+                <form action="/reply/{{id}}/delete" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-link p-0" onclick="return confirm('댓글을 삭제하시겠습니까?');">🗑</button>
+                </form>
+                {{/isReplyWriter}}
+            </div>
+            {{/model.replies}}
+        </div>
+    </div>
+</div>
+
+{{> bottom}}
