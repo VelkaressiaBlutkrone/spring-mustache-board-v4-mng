@@ -2,6 +2,7 @@ package com.example.v4.user.repository;
 
 import java.util.Optional;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -9,11 +10,13 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import com.example.v4.user.entity.User;
 
 @DataJpaTest
-public class UserRepositoryTest {
+@DisplayName("사용자 저장소")
+class UserRepositoryTest {
     @Autowired
     private UserRepository repository;
 
     @Test
+    @DisplayName("회원 저장 - 정상 저장 시 ID가 부여되고 저장된 값이 반환된다")
     void save_test() {
         // given
         User user = User.builder()
@@ -33,6 +36,7 @@ public class UserRepositoryTest {
     }
 
     @Test
+    @DisplayName("findByUserName - 사용자명으로 조회 시 해당 회원을 반환한다")
     void findByUserName_test() {
         // given
         User user = User.builder()

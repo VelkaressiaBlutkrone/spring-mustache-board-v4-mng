@@ -55,4 +55,4 @@ Each domain module follows: **Controller → Service → Repository** with separ
 
 ## Known Issues
 
-- Passwords are stored and compared in plain text (no hashing).
+- (없음)

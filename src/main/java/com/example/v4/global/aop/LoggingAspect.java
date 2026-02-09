@@ -24,11 +24,14 @@ import org.springframework.stereotype.Component;
  */
 @Aspect
 @Component
+@org.springframework.core.annotation.Order(100)
 public class LoggingAspect {
 
-    @Around("execution(* com.example.v4..controller..*(..)) || execution(* com.example.v4..service..*(..)) || execution(* com.example.v4..repository..*(..))")
+    private static final Logger log = LoggerFactory.getLogger(LoggingAspect.class);
+
+    @Around("@within(com.example.v4.global.annotation.Loggable) || @annotation(com.example.v4.global.annotation.Loggable) || "
+            + "execution(* com.example.v4..controller..*(..)) || execution(* com.example.v4..service..*(..)) || execution(* com.example.v4..repository..*(..))")
     public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
-        Logger log = LoggerFactory.getLogger(joinPoint.getTarget().getClass());
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         String className = joinPoint.getTarget().getClass().getSimpleName();
         String methodName = signature.getName();

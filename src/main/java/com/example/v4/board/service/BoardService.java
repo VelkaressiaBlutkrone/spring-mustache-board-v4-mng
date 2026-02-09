@@ -26,6 +26,12 @@ import com.example.v4.global.resetclient.RestClients;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 게시글 목록·상세·등록·수정·삭제를 담당하는 서비스.
+ *
+ * <p>내용에 포함된 YouTube URL을 iframe 임베드로 변환하여 저장한다.
+ * 작성자 이름은 내부 REST API로 조회한다.
+ */
 @Service
 @RequiredArgsConstructor
 public class BoardService {
@@ -34,6 +40,12 @@ public class BoardService {
     private final BoardRepository repository;
     private final RestClients rc;
 
+    /**
+     * 게시글 목록을 최신순으로 조회한다.
+     *
+     * @param su 로그인 사용자 (null 가능, 수정 버튼 노출 여부 결정)
+     * @return 조회된 게시글 DTO 목록
+     */
     public List<BoardReponseDto> list(SessionUser su) {
         return repository.findAllByOrderByIdDesc().stream().map(board -> {
             Dto.User user = rc.get("/api/user/info?writerId={writerId}", Dto.User.class, board.getWriterId());
@@ -41,6 +53,13 @@ public class BoardService {
         }).toList();
     }
 
+    /**
+     * ID로 게시글 DTO를 조회한다.
+     *
+     * @param id 게시글 ID (문자열)
+     * @param su 로그인 사용자 (null 가능)
+     * @return 게시글 DTO Optional
+     */
     public Optional<BoardReponseDto> boardDto(String id, SessionUser su) {
         int boardId = parseBoardId(id);
         return repository.findById(boardId).stream().map(board -> {
@@ -69,6 +88,14 @@ public class BoardService {
         repository.delete(delItem);
     }
 
+    /**
+     * 게시글 상세 정보와 수정 가능 여부를 반환한다.
+     *
+     * @param id 게시글 ID
+     * @param user 로그인 사용자 (null 가능)
+     * @return 상세 DTO와 수정 가능 여부
+     * @throws BoardNotFoundException 게시글 미존재 시
+     */
     public BoardDetailResult getBoardDetail(String id, SessionUser user) {
         BoardReponseDto board = boardDto(id, user)
                 .orElseThrow(() -> new BoardNotFoundException("게시글을 찾을 수 없습니다."));
