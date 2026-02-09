@@ -55,4 +55,26 @@ class UserRepositoryTest {
         org.assertj.core.api.Assertions.assertThat(opUser.get())
                 .extracting("userName").isEqualTo("findUser");
     }
+
+    @Test
+    @DisplayName("findByEmail - 이메일로 조회 시 해당 회원을 반환한다")
+    void findByEmail_이메일로조회시_해당회원을반환한다() {
+        // given
+        User user = User.builder()
+                .userName("emailUser")
+                .password("1234")
+                .email("find@email.com")
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
+        repository.save(user);
+
+        // when
+        Optional<User> opUser = repository.findByEmail("find@email.com");
+
+        // then
+        org.assertj.core.api.Assertions.assertThat(opUser).isPresent();
+        org.assertj.core.api.Assertions.assertThat(opUser.get())
+                .extracting("userName", "email")
+                .containsExactly("emailUser", "find@email.com");
+    }
 }
