@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @Entity
@@ -44,6 +45,7 @@ public class Board {
     @Column(nullable = false)
     private Integer writerId;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "board", fetch = FetchType.EAGER)
     @OrderBy("id DESC")
     private final List<Reply> replies = new ArrayList<>();

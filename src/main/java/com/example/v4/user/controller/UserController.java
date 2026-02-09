@@ -9,8 +9,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import com.example.v4.global.annotation.ValidateOnError;
 import com.example.v4.global.dto.SessionUser;
-import com.example.v4.global.exception.UserValidationException;
 import com.example.v4.user.dto.UserRequestDto;
 import com.example.v4.user.service.UserService;
 
@@ -21,7 +21,8 @@ import lombok.RequiredArgsConstructor;
 /**
  * 회원가입·로그인·로그아웃을 담당하는 MVC 컨트롤러.
  *
- * <p>세션 기반 인증을 사용하며, 로그인 성공 시 SessionUser를 세션에 저장한다.
+ * <p>
+ * 세션 기반 인증을 사용하며, 로그인 성공 시 SessionUser를 세션에 저장한다.
  */
 @Controller
 @RequiredArgsConstructor
@@ -55,14 +56,12 @@ public class UserController {
      * 회원가입을 처리한다. 중복 사용자명이면 UserDuplicationException이 발생한다.
      *
      * @param joinDto 회원가입 요청 DTO
-     * @param br 바인딩 결과 (검증 실패 시 UserValidationException)
+     * @param br      바인딩 결과 (검증 실패 시 ValidationHandler에서 ValidationException)
      * @return 로그인 폼으로 리다이렉트
      */
+    @ValidateOnError(viewName = "user/join-form")
     @PostMapping("/join")
     public ResponseEntity<Void> join(@Valid UserRequestDto.Join joinDto, BindingResult br) {
-        if (br.hasErrors()) {
-            throw new UserValidationException(br, joinDto, "user/join-form");
-        }
         return service.join(joinDto);
     }
 
@@ -70,25 +69,16 @@ public class UserController {
      * 로그인을 처리한다. 인증 성공 시 세션에 SessionUser를 저장하고 메인으로 이동한다.
      *
      * @param loginDto 로그인 요청 DTO
-     * @param br 바인딩 결과 (검증 실패 시 UserValidationException)
-     * @param session HTTP 세션 (SessionUser 저장용)
+     * @param br       바인딩 결과 (검증 실패 시 ValidationHandler에서 ValidationException)
+     * @param session  HTTP 세션 (SessionUser 저장용)
      * @return 메인 또는 로그인 폼으로 리다이렉트
      */
+    @ValidateOnError(viewName = "user/login-form")
     @PostMapping("/login")
     public ResponseEntity<Void> login(@Valid UserRequestDto.Login loginDto, BindingResult br, HttpSession session) {
-        if (br.hasErrors()) {
-            throw new UserValidationException(br, loginDto, "user/login-form");
-        }
-
-        var userOpt = service.authenticate(loginDto);
-
-        if (userOpt.isPresent()) {
-            session.setAttribute(SESSION_USER, SessionUser.from(userOpt.get()));
-
-            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/")).build();
-        }
-
-        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/login-form")).build();
+        var user = service.authenticate(loginDto);
+        session.setAttribute(SESSION_USER, SessionUser.from(user));
+        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/")).build();
     }
 
     /**

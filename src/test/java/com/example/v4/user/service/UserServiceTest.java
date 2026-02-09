@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.example.v4.global.exception.InvalidCredentialsException;
 import com.example.v4.global.exception.UserDuplicationException;
 import com.example.v4.user.dto.UserRequestDto.Join;
 import com.example.v4.user.dto.UserRequestDto.Login;
@@ -100,19 +101,17 @@ class UserServiceTest {
         given(passwordEncoder.matches("password123", "encodedPassword")).willReturn(true);
 
         // when
-        Optional<User> actual = userService.authenticate(loginDto);
+        User actual = userService.authenticate(loginDto);
 
         // then
         assertThat(actual)
-                .isPresent()
-                .get()
                 .extracting("userName", "email")
                 .containsExactly("testuser", "test@email.com");
     }
 
     @Test
-    @DisplayName("authenticate - 비밀번호가 불일치하면 empty를 반환한다")
-    void authenticate_비밀번호불일치면_empty반환한다() {
+    @DisplayName("authenticate - 비밀번호가 불일치하면 InvalidCredentialsException을 던진다")
+    void authenticate_비밀번호불일치면_InvalidCredentialsException을던진다() {
         // given
         Login loginDto = new Login("testuser", "wrongPassword");
         User savedUser = User.builder()
@@ -125,25 +124,23 @@ class UserServiceTest {
         given(repository.findByUserName("testuser")).willReturn(Optional.of(savedUser));
         given(passwordEncoder.matches("wrongPassword", "encodedPassword")).willReturn(false);
 
-        // when
-        Optional<User> actual = userService.authenticate(loginDto);
-
-        // then
-        assertThat(actual).isEmpty();
+        // when & then
+        assertThatThrownBy(() -> userService.authenticate(loginDto))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage("아이디 또는 비밀번호가 올바르지 않습니다.");
     }
 
     @Test
-    @DisplayName("authenticate - 존재하지 않는 사용자명이면 empty를 반환한다")
-    void authenticate_존재하지않는사용자명이면_empty반환한다() {
+    @DisplayName("authenticate - 존재하지 않는 사용자명이면 InvalidCredentialsException을 던진다")
+    void authenticate_존재하지않는사용자명이면_InvalidCredentialsException을던진다() {
         // given
         Login loginDto = new Login("unknown", "password123");
         given(repository.findByUserName("unknown")).willReturn(Optional.empty());
 
-        // when
-        Optional<User> actual = userService.authenticate(loginDto);
-
-        // then
-        assertThat(actual).isEmpty();
+        // when & then
+        assertThatThrownBy(() -> userService.authenticate(loginDto))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage("아이디 또는 비밀번호가 올바르지 않습니다.");
     }
 
     @Test

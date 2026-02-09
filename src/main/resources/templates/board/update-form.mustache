@@ -5,9 +5,6 @@
     <div class="card">
         <div class="card-header"><b>게시글 수정</b></div>
         <div class="card-body">
-            {{#fieldErrors}}
-            <div class="alert alert-danger py-2" role="alert">{{message}}</div>
-            {{/fieldErrors}}
             <form action="/board/{{model.id}}/update" method="post" enctype="application/x-www-form-urlencoded">
                 <div class="mb-3">
                     <input type="text" class="form-control" placeholder="Enter title" name="title" value="{{model.title}}">

@@ -12,8 +12,8 @@ import com.example.v4.board.dto.BoardReponseDto;
 import com.example.v4.board.dto.BoardRequestDto;
 import com.example.v4.board.service.BoardService;
 import com.example.v4.global.annotation.LoginUser;
+import com.example.v4.global.annotation.ValidateOnError;
 import com.example.v4.global.dto.SessionUser;
-import com.example.v4.global.exception.BoardValidationException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -90,15 +90,13 @@ public class BoardController {
      * 게시글을 등록한다. 로그인 사용자만 가능하다.
      *
      * @param dto 게시글 요청 DTO
-     * @param br 바인딩 결과 (검증 실패 시 BoardValidationException)
+     * @param br 바인딩 결과 (검증 실패 시 ValidationHandler에서 ValidationException)
      * @param user 로그인 사용자 (필수)
      * @return 목록 페이지로 리다이렉트
      */
+    @ValidateOnError(viewName = "board/save-form")
     @PostMapping("/board/insert")
     public String insert(@Valid BoardRequestDto dto, BindingResult br, @LoginUser SessionUser user) {
-        if (br.hasErrors()) {
-            throw new BoardValidationException(br, dto, "board/save-form", null);
-        }
         boardService.insert(dto, user);
         return "redirect:/";
     }
@@ -108,16 +106,14 @@ public class BoardController {
      *
      * @param boardId 게시글 ID
      * @param reqDto 수정 요청 DTO
-     * @param br 바인딩 결과 (검증 실패 시 BoardValidationException)
+     * @param br 바인딩 결과 (검증 실패 시 ValidationHandler에서 ValidationException)
      * @param user 로그인 사용자 (작성자 검증용)
      * @return 상세 페이지로 리다이렉트
      */
+    @ValidateOnError(viewName = "board/update-form", pathVariable = "boardId")
     @PostMapping("/board/{id}/update")
     public String update(@PathVariable("id") String boardId, @Valid BoardRequestDto reqDto, BindingResult br,
             @LoginUser SessionUser user) {
-        if (br.hasErrors()) {
-            throw new BoardValidationException(br, reqDto, "board/update-form", boardId);
-        }
         boardService.updateBoardIfOwner(boardId, user, reqDto);
         return "redirect:/board/detail/" + boardId;
     }

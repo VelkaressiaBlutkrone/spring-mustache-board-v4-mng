@@ -1,16 +1,13 @@
 package com.example.v4.global.exception;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -109,6 +106,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(messageBody(ex));
     }
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public Object handleInvalidCredentialsException(InvalidCredentialsException ex,
+            HttpServletRequest request) {
+        if (acceptsHtml(request)) {
+            ModelAndView mav = new ModelAndView("user/login-form");
+            mav.addObject(GLOBAL_MESSAGE, messageBody(ex));
+            if (ex.getDto() != null) {
+                mav.addObject("dto", ex.getDto());
+            }
+            return mav;
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(messageBody(ex));
+    }
+
     /**
      * @Valid 검증 실패 시 Spring이 던지는 예외.
      * BindingResult가 @Valid 파라미터 바로 다음에 없을 때 발생할 수 있음.
@@ -147,18 +158,15 @@ public class GlobalExceptionHandler {
             return redirectWithFlash(request, MESSAGE_PREFIX + "입력값을 확인해주세요.");
         }
 
-        List<Map<String, String>> fieldErrors = new ArrayList<>();
-        for (FieldError fe : bindingResult.getFieldErrors()) {
-            fieldErrors.add(Map.of(
-                    "field", fe.getField(),
-                    "message", fe.getDefaultMessage() != null ? fe.getDefaultMessage() : ""));
-        }
-        mav.addObject("fieldErrors", fieldErrors);
+        String globalMsg = MESSAGE_PREFIX + bindingResult.getFieldErrors().stream()
+                .map(e -> e.getField() + ": " + (e.getDefaultMessage() != null ? e.getDefaultMessage() : ""))
+                .collect(Collectors.joining("; "));
+        mav.addObject(GLOBAL_MESSAGE, globalMsg);
         return mav;
     }
 
-    @ExceptionHandler(BoardValidationException.class)
-    public Object handleBoardValidationException(BoardValidationException ex, HttpServletRequest request) {
+    @ExceptionHandler(ValidationException.class)
+    public Object handleValidationException(ValidationException ex, HttpServletRequest request) {
         if (!acceptsHtml(request)) {
             String msg = ex.getBindingResult().getFieldErrors().stream()
                     .map(e -> e.getField() + ": " + e.getDefaultMessage())
@@ -168,47 +176,24 @@ public class GlobalExceptionHandler {
 
         ModelAndView mav = new ModelAndView(ex.getViewName());
 
-        List<Map<String, String>> fieldErrors = new ArrayList<>();
-        for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
-            fieldErrors.add(Map.of(
-                    "field", fe.getField(),
-                    "message", fe.getDefaultMessage() != null ? fe.getDefaultMessage() : ""));
-        }
-        mav.addObject("fieldErrors", fieldErrors);
+        String globalMsg = MESSAGE_PREFIX + ex.getBindingResult().getFieldErrors().stream()
+                .map(e -> e.getField() + ": " + (e.getDefaultMessage() != null ? e.getDefaultMessage() : ""))
+                .collect(Collectors.joining("; "));
+        mav.addObject(GLOBAL_MESSAGE, globalMsg);
         mav.addObject("dto", ex.getDto());
 
-        if (ex.getBoardId() != null) {
+        if (ex.getPathVariableValue() != null) {
+            BoardRequestDto dto = ex.getDto() instanceof BoardRequestDto b ? b : new BoardRequestDto(null, null);
             BoardReponseDto model = new BoardReponseDto(
-                    ex.getBoardId(),
-                    ex.getDto().getTitle(),
-                    ex.getDto().getContent(),
+                    ex.getPathVariableValue(),
+                    dto.getTitle(),
+                    dto.getContent(),
                     null,
                     null,
                     List.of());
             mav.addObject("model", model);
         }
 
-        return mav;
-    }
-
-    @ExceptionHandler(UserValidationException.class)
-    public Object handleUserValidationException(UserValidationException ex, HttpServletRequest request) {
-        if (!acceptsHtml(request)) {
-            String msg = ex.getBindingResult().getFieldErrors().stream()
-                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
-                    .collect(Collectors.joining("; "));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(MESSAGE_PREFIX + msg);
-        }
-
-        ModelAndView mav = new ModelAndView(ex.getViewName());
-        List<Map<String, String>> fieldErrors = new ArrayList<>();
-        for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
-            fieldErrors.add(Map.of(
-                    "field", fe.getField(),
-                    "message", fe.getDefaultMessage() != null ? fe.getDefaultMessage() : ""));
-        }
-        mav.addObject("fieldErrors", fieldErrors);
-        mav.addObject("dto", ex.getDto());
         return mav;
     }
 

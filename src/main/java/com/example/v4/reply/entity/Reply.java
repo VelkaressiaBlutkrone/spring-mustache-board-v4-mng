@@ -16,6 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @Entity
@@ -30,9 +31,11 @@ public class Reply {
     @Column
     private String comment;
 
+    @ToString.Exclude
     @ManyToOne
     private Board board;
 
+    @ToString.Exclude
     @ManyToOne
     private User user;
 

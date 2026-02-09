@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.v4.global.exception.InvalidCredentialsException;
 import com.example.v4.global.exception.UserDuplicationException;
 import com.example.v4.user.dto.UserRequestDto.Join;
 import com.example.v4.user.dto.UserRequestDto.Login;
@@ -89,10 +90,12 @@ public class UserService {
      * 로그인 인증을 수행한다. 사용자명과 비밀번호가 일치하면 회원을 반환한다.
      *
      * @param loginDto 로그인 요청 DTO
-     * @return 인증 성공 시 회원 Optional, 실패 시 empty
+     * @return 인증 성공 시 회원
+     * @throws InvalidCredentialsException 아이디 또는 비밀번호가 틀린 경우
      */
-    public Optional<User> authenticate(Login loginDto) {
+    public User authenticate(Login loginDto) {
         return repository.findByUserName(loginDto.username())
-                .filter(user -> passwordEncoder.matches(loginDto.password(), user.getPassword()));
+                .filter(user -> passwordEncoder.matches(loginDto.password(), user.getPassword()))
+                .orElseThrow(() -> new InvalidCredentialsException("아이디 또는 비밀번호가 올바르지 않습니다.", loginDto));
     }
 }

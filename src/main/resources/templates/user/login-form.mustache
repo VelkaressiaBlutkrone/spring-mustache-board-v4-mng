@@ -5,9 +5,6 @@
     <div class="card">
         <div class="card-header"><b>로그인 페이지</b></div>
         <div class="card-body">
-            {{#fieldErrors}}
-            <div class="alert alert-danger py-2" role="alert">{{message}}</div>
-            {{/fieldErrors}}
             <form action="/login" method="post" enctype="application/x-www-form-urlencoded">
                 <div class="mb-3">
                     <input id="username" type="text" class="form-control" placeholder="Enter username" name="username" value="{{#dto}}{{username}}{{/dto}}">
